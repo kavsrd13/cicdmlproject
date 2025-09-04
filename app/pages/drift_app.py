@@ -3,7 +3,8 @@ import pandas as pd
 import requests
 import base64
 from evidently.report import Report
-from evidently.metrics import DataDriftPreset, PredictionDriftMetric
+from evidently.metric_preset import DataDriftPreset
+from evidently.metrics import PredictionDriftMetric
 
 # GitHub repo info
 GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
