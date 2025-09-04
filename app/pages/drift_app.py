@@ -11,7 +11,7 @@ from streamlit.components.v1 import html as st_html
 
 # Evidently imports (v0.4.x)
 from evidently.report import Report
-from evidently.metrics import DataDriftPreset, PredictionDriftMetric
+from evidently.report.presets import DataDriftPreset, TargetDriftPreset
 from evidently.pipeline.column_mapping import ColumnMapping
 
 st.set_page_config(page_title="Model & Data Drift", layout="wide")
@@ -197,10 +197,7 @@ col_mapping.categorical_features = cat_cols
 
 st.markdown("### Running Evidently reports (DataDriftPreset + TargetDriftPreset). This may take a few seconds...")
 
-report = Report(metrics=[
-    DataDriftPreset(),
-    PredictionDriftMetric()
-])
+report = Report(metrics=[DataDriftPreset(), TargetDriftPreset()])
 
 
 with st.spinner("Generating Evidently report..."):
