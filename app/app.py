@@ -77,14 +77,15 @@ LOG_FILE = "logs/inference_log.csv"
 os.makedirs("logs", exist_ok=True)
 
 # Safe log reader
-if os.path.exists(LOG_FILE) and os.path.getsize(LOG_FILE) > 0:
+def safe_read_log(path):
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        return pd.DataFrame()
     try:
-        log_df = pd.read_csv(LOG_FILE, encoding="utf-8")
-    except Exception:
-        log_df = pd.DataFrame()  # fallback if corrupted
-else:
-    log_df = pd.DataFrame()
+        return pd.read_csv(path, encoding="utf-8")
+    except UnicodeDecodeError:
+        return pd.read_csv(path, encoding="latin1")
 
+log_df = safe_read_log(LOG_FILE)
 
 # Prediction button
 if st.button("Predict Income"):
@@ -96,11 +97,11 @@ if st.button("Predict Income"):
     input_data["prediction"] = result
     input_data["timestamp"] = pd.Timestamp.now()
 
-    # Append to log file
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_csv(LOG_FILE)
+    # Append to logs
+    if not log_df.empty:
         log_df = pd.concat([log_df, input_data], ignore_index=True)
     else:
         log_df = input_data
 
-    log_df.to_csv(LOG_FILE, index=False)
+    # Always save as UTF-8
+    log_df.to_csv(LOG_FILE, index=False, encoding="utf-8")
