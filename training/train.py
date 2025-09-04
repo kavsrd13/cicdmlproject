@@ -6,6 +6,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
+import os
 
 # 1. Load dataset
 df = pd.read_csv("../data/adult_income.csv")
@@ -45,5 +46,9 @@ y_pred = model.predict(X_test)
 print(classification_report(y_test, y_pred))
 
 # 9. Save trained model
-joblib.dump(model, "../model/model.pkl")
+# ensure the model folder exists relative to repo root
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "model")
+os.makedirs(MODEL_DIR, exist_ok=True)
+
+joblib.dump(model, os.path.join(MODEL_DIR, "model.pkl"))
 print("Model saved as model.pkl")
