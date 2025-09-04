@@ -3,6 +3,10 @@ import pandas as pd
 import joblib
 import os
 
+import evidently
+import streamlit as st
+st.write("Evidently version:", evidently.__version__)
+
 # Load trained model
 model = joblib.load("model/model.pkl")
 
