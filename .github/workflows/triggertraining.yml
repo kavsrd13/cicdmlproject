@@ -34,6 +34,6 @@ jobs:
         run: |
           git config --global user.name "kavsrd13"
           git config --global user.email "krishna.dwivedi1618@gmail.com"
-          git add ../model/model.pkl
+          git add model/model.pkl
           git commit -m "Update trained model [skip ci]" || echo "No changes to commit"
           git push
