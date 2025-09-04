@@ -76,6 +76,16 @@ input_data = pd.DataFrame([{
 LOG_FILE = "logs/inference_log.csv"
 os.makedirs("logs", exist_ok=True)
 
+# Safe log reader
+if os.path.exists(LOG_FILE) and os.path.getsize(LOG_FILE) > 0:
+    try:
+        log_df = pd.read_csv(LOG_FILE, encoding="utf-8")
+    except Exception:
+        log_df = pd.DataFrame()  # fallback if corrupted
+else:
+    log_df = pd.DataFrame()
+
+
 # Prediction button
 if st.button("Predict Income"):
     prediction = model.predict(input_data)[0]
