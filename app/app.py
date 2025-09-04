@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load("../model/model.pkl")
+model = joblib.load("model/model.pkl")
 
 st.title("💰 Income Prediction App")
 st.write("This app predicts whether a person earns >50K or <=50K based on census data.")
