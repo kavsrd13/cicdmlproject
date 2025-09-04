@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 import os
-
+from push_to_github import push_file_to_github
 import evidently
 import streamlit as st
 st.write("Evidently version:", evidently.__version__)
@@ -105,3 +105,8 @@ if st.button("Predict Income"):
 
     # Always save as UTF-8
     log_df.to_csv(LOG_FILE, index=False, encoding="utf-8")
+
+    
+
+# Push updated log to GitHub
+push_file_to_github("logs/inference_log.csv", "kavsrd13/cicdmlproject")
