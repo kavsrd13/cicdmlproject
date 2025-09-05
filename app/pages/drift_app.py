@@ -86,6 +86,11 @@ def build_column_mapping(df: pd.DataFrame):
 
     return column_mapping
 
+# ------------------- Drop Empty Columns -------------------
+def drop_empty_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove columns that are fully empty (all NaN or None)."""
+    return df.dropna(axis=1, how="all")
+
 
 # ------------------- Align Columns -------------------
 def align_columns(reference_df, current_df):
@@ -116,6 +121,12 @@ st.dataframe(current_df.tail(5))
 
 # Align schema
 reference_df, current_df = align_columns(reference_df, current_df)
+
+# Drop completely empty columns (important for Evidently)
+reference_df = drop_empty_columns(reference_df)
+current_df = drop_empty_columns(current_df)
+
+
 
 # Build column mapping
 column_mapping = build_column_mapping(reference_df)
