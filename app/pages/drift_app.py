@@ -8,12 +8,13 @@ from datetime import datetime
 from streamlit.components.v1 import html as st_html
 
 # Evidently (v0.4.33+)
-from evidently import Dataset, DataDefinition, Report
-from evidently.presets import DataDriftPreset, DataSummaryPreset
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset, DataSummaryPreset, DataQualityPreset
 
 st.set_page_config(page_title="Model & Data Drift", layout="wide")
 
-st.title("📊 Drift Monitoring Dashboard (Evidently)")
+st.title("📊 Drift & Monitoring Dashboard (Evidently)")
+
 
 # ------------------- Reference Data -------------------
 def build_reference_dataset():
@@ -50,6 +51,7 @@ def build_reference_dataset():
     df["prediction"] = preds
     return df
 
+
 # ------------------- Current (inference) Data -------------------
 def load_current_dataset():
     log_file = os.path.join("logs", "inference_log.csv")
@@ -63,16 +65,6 @@ def load_current_dataset():
         st.error(f"Error reading inference logs: {e}")
         return None
 
-# ------------------- Evidently Schema -------------------
-def build_schema(df: pd.DataFrame):
-    num_cols = df.select_dtypes(include=["number"]).columns.tolist()
-    cat_cols = [c for c in df.columns if c not in num_cols]
-
-    schema = DataDefinition(
-        numerical_columns=num_cols,
-        categorical_columns=cat_cols,
-    )
-    return schema
 
 # ------------------- Main Flow -------------------
 with st.spinner("Loading reference and current data..."):
@@ -88,34 +80,38 @@ st.dataframe(reference_df.sample(min(5, len(reference_df))))
 st.subheader("Current inference logs preview")
 st.dataframe(current_df.tail(5))
 
-# Build Evidently datasets
-schema = build_schema(reference_df)
-
-ref_data = Dataset.from_pandas(reference_df, data_definition=schema)
-cur_data = Dataset.from_pandas(current_df, data_definition=schema)
 
 # ------------------- Generate Reports -------------------
 st.markdown("### Running Evidently Reports...")
 
 # Data Drift
-drift_report = Report([DataDriftPreset()])
+drift_report = Report(metrics=[DataDriftPreset()])
 with st.spinner("Running Data Drift Report..."):
-    drift_eval = drift_report.run(ref_data, cur_data)
+    drift_report.run(reference_data=reference_df, current_data=current_df)
 
-# Data Summary (extra visualization)
-summary_report = Report([DataSummaryPreset()])
+# Data Summary
+summary_report = Report(metrics=[DataSummaryPreset()])
 with st.spinner("Running Data Summary Report..."):
-    summary_eval = summary_report.run(cur_data)
+    summary_report.run(current_data=current_df)
+
+# Data Quality
+quality_report = Report(metrics=[DataQualityPreset()])
+with st.spinner("Running Data Quality Report..."):
+    quality_report.run(current_data=current_df)
 
 # ------------------- Save and Render -------------------
 reports_dir = "reports"
 os.makedirs(reports_dir, exist_ok=True)
 
-drift_html = os.path.join(reports_dir, f"drift_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html")
-summary_html = os.path.join(reports_dir, f"summary_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html")
+timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+
+drift_html = os.path.join(reports_dir, f"drift_{timestamp}.html")
+summary_html = os.path.join(reports_dir, f"summary_{timestamp}.html")
+quality_html = os.path.join(reports_dir, f"quality_{timestamp}.html")
 
 drift_report.save_html(drift_html)
 summary_report.save_html(summary_html)
+quality_report.save_html(quality_html)
 
 st.success("Reports generated successfully ✅")
 
@@ -127,6 +123,11 @@ with open(drift_html, "r", encoding="utf-8") as f:
 # Show Summary Report
 st.markdown("### 📑 Data Summary Report")
 with open(summary_html, "r", encoding="utf-8") as f:
+    st_html(f.read(), height=800, scrolling=True)
+
+# Show Data Quality Report
+st.markdown("### ✅ Data Quality Report")
+with open(quality_html, "r", encoding="utf-8") as f:
     st_html(f.read(), height=800, scrolling=True)
 
 st.info("Reports compare training data (reference) vs. production logs (current).")
