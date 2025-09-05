@@ -62,6 +62,10 @@ def load_current_dataset():
         return None
     try:
         df = pd.read_csv(log_file)
+
+        # Ensure prediction column exists
+        if "prediction" not in df.columns:
+            st.warning("Inference logs found but no 'prediction' column detected.")
         return df
     except Exception as e:
         st.error(f"Error reading inference logs: {e}")
@@ -119,7 +123,7 @@ column_mapping = build_column_mapping(reference_df)
 # ------------------- Generate Reports -------------------
 st.markdown("### Running Evidently Reports...")
 
-# Data Drift Report
+# --- Data Drift Report ---
 drift_report = Report(metrics=[DataDriftPreset()])
 with st.spinner("Running Data Drift Report..."):
     drift_report.run(
@@ -128,24 +132,34 @@ with st.spinner("Running Data Drift Report..."):
         column_mapping=column_mapping
     )
 
-# Model Performance / Classification Drift Report
-model_report = Report(metrics=[ClassificationPreset()])
-with st.spinner("Running Model Performance Report..."):
-    model_report.run(
-        reference_data=reference_df,
-        current_data=current_df,
-        column_mapping=column_mapping
-    )
+# --- Model Performance Report (only if target exists in current data) ---
+run_model_report = "target" in current_df.columns and current_df["target"].notna().any()
+
+if run_model_report:
+    model_report = Report(metrics=[ClassificationPreset()])
+    with st.spinner("Running Model Performance Report..."):
+        model_report.run(
+            reference_data=reference_df,
+            current_data=current_df,
+            column_mapping=column_mapping
+        )
+else:
+    model_report = None
+    st.warning("Skipping Model Performance Report: no 'target' column found in current data.")
+
 
 # ------------------- Save and Render -------------------
 reports_dir = "reports"
 os.makedirs(reports_dir, exist_ok=True)
 
 drift_html = os.path.join(reports_dir, f"drift_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html")
-model_html = os.path.join(reports_dir, f"model_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html")
-
 drift_report.save_html(drift_html)
-model_report.save_html(model_html)
+
+if model_report is not None:
+    model_html = os.path.join(reports_dir, f"model_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html")
+    model_report.save_html(model_html)
+else:
+    model_html = None
 
 st.success("Reports generated successfully ✅")
 
@@ -155,8 +169,9 @@ with open(drift_html, "r", encoding="utf-8") as f:
     st_html(f.read(), height=800, scrolling=True)
 
 # Show Model Performance Report
-st.markdown("### 🤖 Classification Performance Report")
-with open(model_html, "r", encoding="utf-8") as f:
-    st_html(f.read(), height=800, scrolling=True)
+if model_html:
+    st.markdown("### 🤖 Classification Performance Report")
+    with open(model_html, "r", encoding="utf-8") as f:
+        st_html(f.read(), height=800, scrolling=True)
 
 st.info("Reports compare training data (reference) vs. production logs (current).")
