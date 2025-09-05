@@ -2,6 +2,6 @@ streamlit==1.39.0
 pandas==2.2.3
 scikit-learn==1.5.2
 joblib==1.4.2
-evidently==0.4.33
+evidently==0.6.7
 requests
 matplotlib
