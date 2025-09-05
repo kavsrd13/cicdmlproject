@@ -1,7 +1,7 @@
 name: Train Model
 
 on:
-  push:
+  #push:
     branches:
       - main
   workflow_dispatch:   # 👈 also allows manual trigger
