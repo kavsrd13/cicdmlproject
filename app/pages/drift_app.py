@@ -11,9 +11,10 @@ from datetime import datetime
 from streamlit.components.v1 import html as st_html
 
 # Evidently imports (v0.4.x)
-from evidently.report import Report
-from evidently.report.presets import DataDriftPreset, TargetDriftPreset
+from evidently import Report
+from evidently.metric_preset import DataDriftPreset, TargetDriftPreset
 from evidently.pipeline.column_mapping import ColumnMapping
+
 
 # ----------------------------
 # Streamlit Page Config
