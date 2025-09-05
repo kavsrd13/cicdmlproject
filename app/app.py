@@ -90,7 +90,7 @@ log_df = safe_read_log(LOG_FILE)
 # Prediction button
 if st.button("Predict Income"):
     prediction = model.predict(input_data)[0]
-    result = ">50K" if prediction == 1 else "<=50K"
+    result = ">50K" if prediction >=1 else "<=50K"
     st.success(f"Predicted Income: {result}")
 
     # Add prediction + timestamp to input data
