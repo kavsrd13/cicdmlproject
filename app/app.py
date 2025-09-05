@@ -5,7 +5,7 @@ import os
 from push_to_github import push_file_to_github
 import evidently
 import streamlit as st
-st.write("Evidently version:", evidently.__version__)
+
 
 # Load trained model
 model = joblib.load("model/model.pkl")
